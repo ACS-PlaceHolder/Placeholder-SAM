@@ -1,0 +1,6 @@
+{
+    "pathParameters": {
+      "hotplacePartitionKey": "강남구",
+      "hotplaceSortKey" : "154429973"
+    }
+  }

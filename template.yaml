@@ -1,0 +1,389 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: 'AWS::Serverless-2016-10-31'
+Resources:
+  LambdaExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: LambdaPermissions
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - dynamodb:Query
+                  - dynamodb:GetItem
+                  - dynamodb:PutItem
+                  - dynamodb:UpdateItem
+                  - s3:GetObject
+                  - s3:ListBucket
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                  - bedrock:InvokeModel  
+                  - bedrock:ListModels  
+                Resource: "*"
+
+  MyApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      Name: MyApi
+      StageName: placeholder
+      Auth:
+        DefaultAuthorizer: NONE
+      Cors:
+        AllowMethods: "'GET,POST,OPTIONS'"
+        AllowHeaders: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+        AllowOrigin: "'*'"
+
+  GetHotplaceFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: placeholder_hotplace.get_hotplace_all_gu.handler
+      Runtime: python3.12
+      CodeUri: .
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Environment:
+        Variables:
+          TABLE_NAME: "HOTPLACE"
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref MyApi
+            Path: /hotplace/read/all
+            Method: get
+            Auth:
+              Authorizer: NONE
+            RequestParameters:
+              - method.request.querystring.gu:
+                  Required: true
+
+  GetRestaurantByGuFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: placeholder_hotplace.get_hotplace_gu_restaurant.handler
+      Runtime: python3.12
+      CodeUri: .
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Environment:
+        Variables:
+          TABLE_NAME: "HOTPLACE"
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref MyApi
+            Path: /hotplace/read/restaurant
+            Method: get
+            Auth:
+              Authorizer: NONE
+            RequestParameters:
+              - method.request.querystring.gu:
+                  Required: true
+
+  GetCafeByGuFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: placeholder_hotplace.get_hotplace_gu_cafe.handler
+      Runtime: python3.12
+      CodeUri: .
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Environment:
+        Variables:
+          TABLE_NAME: "HOTPLACE"
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref MyApi
+            Path: /hotplace/read/cafe
+            Method: get
+            Auth:
+              Authorizer: NONE
+            RequestParameters:
+              - method.request.querystring.gu:
+                  Required: true
+
+  GetEnterByGuFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: placeholder_hotplace.get_hotplace_gu_enter.handler
+      Runtime: python3.12
+      CodeUri: .
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Environment:
+        Variables:
+          TABLE_NAME: "HOTPLACE"
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref MyApi
+            Path: /hotplace/read/enter
+            Method: get
+            Auth:
+              Authorizer: NONE
+            RequestParameters:
+              - method.request.querystring.gu:
+                 Required: true
+
+  GetDetailByGuFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: placeholder_hotplace.get_hotplace_detail.handler
+      Runtime: python3.12
+      CodeUri: .
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Environment:
+        Variables:
+          TABLE_NAME: "HOTPLACE"
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref MyApi
+            Path: /hotplace/read/detail
+            Method: get
+            Auth:
+              Authorizer: NONE
+            RequestParameters:
+              - method.request.querystring.hotplacePartitionKey:
+                  Required: true
+                method.request.querystring.hotplaceSortKey:
+                  Required: true
+
+  GetMemberByIdFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: placeholder_member.get_member_info.handler
+      Runtime: python3.12
+      CodeUri: .
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Environment:
+        Variables:
+          TABLE_NAME: "MEMBER"
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref MyApi
+            Path: /course/read/member
+            Method: get
+            Auth:
+              Authorizer: NONE
+            RequestParameters:
+              - method.request.querystring.memberId:
+                  Required: true
+
+  PostMemberStartByIdFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: placeholder_member.post_member_start.handler
+      Runtime: python3.12
+      CodeUri: .
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Environment:
+        Variables:
+          KAKAO_API_KEY: {KAKAO-API-KEY}
+          TABLE_NAME: "MEMBER"
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref MyApi
+            Path: /course/write/member/location
+            Method: post
+            Auth:
+              Authorizer: NONE
+            RequestParameters:
+              - method.request.querystring.memberId:
+                  Required: true
+                method.request.querystring.address:
+                  Required: true
+
+  GetMemberCourseByIdFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: placeholder_member.get_member_course_id.handler
+      Runtime: python3.12
+      CodeUri: .
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Environment:
+        Variables:
+          TABLE_NAME: "MEMBER"
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref MyApi
+            Path: /course/read/membercourse/all
+            Method: get
+            Auth:
+              Authorizer: NONE
+            RequestParameters:
+              - method.request.querystring.memberId:
+                  Required: true
+
+  GetMemberCourseDetailByIdFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: placeholder_member.get_member_course_detail.handler
+      Runtime: python3.12
+      CodeUri: .
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Environment:
+        Variables:
+          TABLE_NAME: "MEMBER"
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref MyApi
+            Path: /course/read/membercourse/detail
+            Method: get
+            Auth:
+              Authorizer: NONE
+            RequestParameters:
+              - method.request.querystring.memberId:
+                  Required: true
+
+  GetMemberCourseRealtimeByIdFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: placeholder_member.get_member_course_realtime.handler
+      Runtime: python3.12
+      CodeUri: .
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Environment:
+        Variables:
+          GOOGLE_API_KEY: {GOOGLE-API-KEY}
+          TABLE_NAME: "MEMBER"
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref MyApi
+            Path: /course/read/membercourse/realtime
+            Method: get
+            Auth:
+              Authorizer: NONE
+            RequestParameters:
+              - method.request.querystring.memberId:
+                  Required: true
+      Layers:
+        - !Ref DependenciesLayer
+      Timeout: 30      
+
+  PostMemberCourseStopFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: placeholder_course.stop_course.handler
+      Runtime: python3.12
+      CodeUri: .
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Environment:
+        Variables:
+          TABLE_NAME: "MEMBER"
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref MyApi
+            Path: /course/write/membercourse/pause
+            Method: post
+            Auth:
+              Authorizer: NONE
+            RequestParameters:
+              - method.request.querystring.memberId:
+                  Required: true
+
+  PostMemberCourseCreateFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: placeholder_course.create_course.handler
+      Runtime: python3.12
+      CodeUri: .
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Environment:
+        Variables:
+          TABLE_NAME: "MEMBER"
+          GOOGLE_API_KEY: {GOOGLE-API-KEY}
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref MyApi
+            Path: /course/write/membercourse/write
+            Method: post
+            Auth:
+              Authorizer: NONE
+      Layers:
+        - !Ref DependenciesLayer
+      Timeout: 120      
+
+  PostMemberCourseCreateIdFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: placeholder_course.create_course_id.handler
+      Runtime: python3.12
+      CodeUri: .
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Environment:
+        Variables:
+          TABLE_NAME: "MEMBER"
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref MyApi
+            Path: /course/write/membercourse/
+            Method: post
+            Auth:
+              Authorizer: NONE
+      Timeout: 30     
+
+  GetHotplacePakringlotFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: placeholder_hotplace.get_hotplace_parkinglot.handler
+      Runtime: python3.12
+      CodeUri: .
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Environment:
+        Variables:
+          TABLE_NAME: "HOTPLACE"
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref MyApi
+            Path: /hotplace/read/parkinglot/
+            Method: get
+            Auth:
+              Authorizer: NONE
+            RequestParameters:
+              - method.request.querystring.gu:
+                 Required: true  
+
+  DependenciesLayer:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      LayerName: dependencies
+      Description: Dependencies for PostMemberStartByIdFunction
+      ContentUri: requests.zip
+      CompatibleRuntimes:
+        - python3.12
+      RetentionPolicy: Retain
+
+Outputs:
+  GetHotplaceApiUrl:
+    Description: "API Gateway endpoint URL for GetHotplaceFunction"
+    Value: !Sub "https://${MyApi}.execute-api.${AWS::Region}.amazonaws.com/placeholder/hotplace/read/all"
